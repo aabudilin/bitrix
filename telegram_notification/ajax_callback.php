@@ -19,10 +19,10 @@ $arEventFields['MESSAGE'] = $message;
 
 
 // сюда нужно вписать токен вашего бота
-define('TELEGRAM_TOKEN', '1223131685:AAEciaLofreY09WVzVVXYFuWF4OIFOe8LWU');
+define('TELEGRAM_TOKEN', '<token>');
 
 // сюда нужно вписать ваш внутренний айдишник
-define('TELEGRAM_CHATID', '-423653255');
+define('TELEGRAM_CHATID', '<id_number>');
 
 $telegram_message = 'На сайте оставлена заявка на обратный звонок. Имя - '.$_REQUEST['name'].', телефон - '.$_REQUEST['tel'];
 
