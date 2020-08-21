@@ -76,6 +76,9 @@ function create_element($name, $id_section, $prop, $q, $price, $xml_id, $descr) 
     "ACTIVE"            => "Y",
   );
 
+  //Подготовка цены
+  $price = str_replace(',','.',$price);
+
   if($ID = $el->Add($elArray)) {
     //Создаем товар
     $productID = CCatalogProduct::add(array("ID" => $ID, "QUANTITY" => $q));
@@ -118,6 +121,20 @@ function isset_element($param, $val) {
 
 }
 
+function deactivate() {
+  $ar_map = array();
+  $arFilter = Array("IBLOCK_ID"=>CATALOG_IBLOCK);
+  $res = CIBlockElement::GetList(Array(), $arFilter, false, array(), array('ID'));
+  while ($ob = $res->GetNextElement()) {
+    $arFields = $ob->GetFields();
+    //Деактивируем элементы
+    $el = new CIBlockElement;
+    $ElementArray = Array("ACTIVE" => "N",);
+    $arFields = $ob->GetFields();
+    $el->Update($arFields['ID'], $ElementArray);
+  }
+}
+
 //Получение всех элементов ARTICLE => ID
 function get_map_element() {
   $ar_map = array();
@@ -126,12 +143,6 @@ function get_map_element() {
   while ($ob = $res->GetNextElement()) {
     $arFields = $ob->GetFields();
     $ar_map[$arFields['PROPERTY_ARTICLE_VALUE']] = $arFields['ID'];
-
-    //Деактивируем элементы
-    $el = new CIBlockElement;
-    $ElementArray = Array("ACTIVE" => "N",);
-    $arFields = $ob->GetFields();
-    $el->Update($arFields['ID'], $ElementArray);
   }
   return $ar_map;
 }
@@ -143,7 +154,7 @@ function get_map_brand() {
   $res = CIBlockElement::GetList(Array(), $arFilter, false, array(), array('ID', 'NAME'));
   while ($ob = $res->GetNextElement()) {
     $arFields = $ob->GetFields();
-    $ar_map[$arFields['NAME']] = $arFields['ID'];
+    $ar_map[mb_strtoupper($arFields['NAME'])] = $arFields['ID'];
   }
   return $ar_map;
 }
@@ -161,11 +172,55 @@ function update_element($id, $prop, $id_section, $data) {
   );
 
   if ($res = $el->Update($id, $arLoad)) {
+    $productID = CCatalogProduct::Update($id,array("QUANTITY" => $data[12]));
+
+    $price = str_replace(',','.',$data[16]);
+
+    //Добавляем цену
+    $arPropPrice = Array(
+      "CURRENCY"         => "RUB",       // валюта
+      "PRICE"            => $price,    // значение цены
+      "CATALOG_GROUP_ID" => 1,           // ID типа цены
+      "PRODUCT_ID"       => $id,  // ID товара
+    );
+
+    //echo '---'.$price.'--- ';
+
+    $res_price = CPrice::GetList(
+        array(),
+        array(
+                "PRODUCT_ID" => $id,
+                "CATALOG_GROUP_ID" => 1
+            )
+    );
+
+    if ($arr = $res_price->Fetch()) {
+      CPrice::Update($arr["ID"],$arPropPrice);
+      //echo '<br />'.$data[1].'<br />';
+      //print_r($arr);
+    } else {
+      CPrice::Add($arPropPrice);
+    }
     return true;
   } else {
     return $el->LAST_ERROR;
   }
 
+}
+
+function check_brand($name_brand, $map_brand) {
+  if (isset($map_brand[$name_brand])) {
+    return $map_brand[$name_brand];
+  } else {
+    $el = new CIBlockElement;
+    $elArray = Array(
+      "IBLOCK_ID"         => BRAND_IBLOCK,
+      "NAME"              => $name_brand,
+      "ACTIVE"            => "Y",
+    );
+    $ID = $el->Add($elArray);
+    return $ID;
+  }
 }
 
 ?>
@@ -240,8 +295,9 @@ function update_element($id, $prop, $id_section, $data) {
 
   $ar_map = get_map_element();
   $ar_map_brand = get_map_brand();
+  deactivate();
 
-	 //print_r($ar_map_brand);
+   //print_r($ar_map_brand);
 
   while (($data = fgetcsv($handle, 2000, ";")) !== FALSE) {
     $num = count($data);
@@ -292,11 +348,21 @@ function update_element($id, $prop, $id_section, $data) {
       }
 
       /*Обработка брендов*/
-      if (isset($ar_map_brand[$data[18]])) {
-        $PROP_ADD['BRAND'] = $ar_map_brand[$data[18]];
+      $prepare_name = trim(mb_strtoupper($data[18]));
+      if (isset($ar_map_brand[$prepare_name])) {
+        $id_brand =  $ar_map_brand[$prepare_name];
       } else {
-        $PROP_ADD['BRAND'] = '';
+        $el = new CIBlockElement;
+        $elArray = Array(
+          "IBLOCK_ID"         => BRAND_IBLOCK,
+          "NAME"              => trim($data[18]),
+          "ACTIVE"            => "Y",
+        );
+        $id_brand = $el->Add($elArray);
+        $ar_map_brand[$prepare_name] = $id_brand;
       }
+      $PROP_ADD['BRAND'] = $id_brand;
+      
       /*---*/
 
       if (!$err && !empty($id_section)) {
@@ -338,9 +404,9 @@ function update_element($id, $prop, $id_section, $data) {
 //Удаляем файл
 Debug::log(PATH_LOG,$info);
 unlink(PATH_CSV);
-	  if (LOGGED) {
-			echo $log;
-	  }
+    if (LOGGED) {
+      echo $log;
+    }
 //print_r($info);
 }
 ?>
