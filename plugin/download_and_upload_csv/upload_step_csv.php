@@ -77,15 +77,20 @@ function create_element($data) {
    );
 
   $el = new CIBlockElement;
+  //$PROP['PROPERTY_BRANDS_REF'] = $data[4];
   $elArray = Array(
     "IBLOCK_ID"         => CATALOG_IBLOCK,
     "IBLOCK_SECTION_ID" => $data[3],       
     "NAME"              => $data[1],
     "ACTIVE"            => "Y",
     "CODE"              => CUtil::translit($data[1], "ru", $params),
+    //"PROPERTY_VALUES"   => $PROP,
   );
 
   if($ID = $el->Add($elArray)) {
+  //Записываем свойство типа справочник
+  CIBlockElement::SetPropertyValuesEx($ID, CATALOG_IBLOCK, array('BRANDS_REF' => $data[4]));
+
     //Создаем товар
     $productID = CCatalogProduct::add(array("ID" => $ID, "QUANTITY" => 1));
 
@@ -154,7 +159,7 @@ function update_element($data) {
   if ($res = $el->Update($data[0], $arLoad)) {
     $productID = CCatalogProduct::Update($data[0],array("QUANTITY" => 1));
 
-    $price = intval($data[4]);
+    $price = intval($data[5]);
 
     //Добавляем цену
     $arPropPrice = Array(
