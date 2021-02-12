@@ -48,7 +48,7 @@ function write_map ($arr, $host,$priority='',$freq='') {
 
         if ($host == 'https://site.ru') {
             
-            //Проверяем ответ сервера только для хоста https://pushe.ru
+            //Проверяем ответ сервера только для основного хоста
             if (get_headers($host.$arPath['URL'])[0] == 'HTTP/1.1 200 OK') {
                 $sitemap .= '<url><loc>'.$host.$arPath['URL'].'</loc>';
                 if($arPath['LASTMOD']) $sitemap .= '<lastmod>'.$arPath['LASTMOD'].'</lastmod>';
