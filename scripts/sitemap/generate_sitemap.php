@@ -46,7 +46,7 @@ function write_map ($arr, $host,$priority='',$freq='') {
     $x = 0;
     foreach ($arr as $arPath) {
 
-        if ($host == 'https://pushe.ru') {
+        if ($host == 'https://site.ru') {
             
             //Проверяем ответ сервера только для хоста https://pushe.ru
             if (get_headers($host.$arPath['URL'])[0] == 'HTTP/1.1 200 OK') {
@@ -120,7 +120,7 @@ function get_section ($iblock_id) {
 
     $ar_host[] = array (
         'NAME' => 'Основной домен',
-        'HOST' => 'https://pushe.ru',
+        'HOST' => 'https://site.ru',
         'FILE' => 'sitemap.xml',
     );
 
@@ -132,14 +132,6 @@ function get_section ($iblock_id) {
         '/horeca/', //'Нестандарт',
         '/blog/', // => 'Блог',
         '/weeklysale/', // => 'Акции',
-        '/readymade/', // => 'Сейчас в салонах',
-        '/company/about/', // => 'О компании',
-        '/company/ekskursiya-na-fabriku/', //Экскурсия на фабрику
-        '/company/principles/', //Наши принципы
-        '/company/pushe-na-tv/', //Пуше на ТВ
-        '/company/blagotvoritelnost/', //Благотворительность
-        '/clients/designers/', //Дизайнерам
-        '/clients/arendodatelyam/', //Арендодателям
         '/company/vakansii/', //Вакансии
         '/clients/guarantee/', //Гарантия
         '/clients/return/', //Возврат
@@ -206,11 +198,11 @@ function get_section ($iblock_id) {
 
         $filename = $host['FILE'];
         $path_sitemap =  $_SERVER['DOCUMENT_ROOT'].'/'.$filename;
-        if ($host['HOST'] != 'https://pushe.ru') $path_sitemap =  $_SERVER['DOCUMENT_ROOT'].'/sitemap/'.$filename;
+        if ($host['HOST'] != 'https://site.ru') $path_sitemap =  $_SERVER['DOCUMENT_ROOT'].'/sitemap/'.$filename;
         $x = 0; //Счетчик количества записей
         $sitemap = '';
 
-        if ($host['HOST'] == 'https://pushe.ru') {
+        if ($host['HOST'] == 'https://site.ru') {
             $ar_res = array();
             $ar_res = write_map($staticPath,$host['HOST'],'0.8','weekly');
             $sitemap .= $ar_res['MAP'];
@@ -247,29 +239,29 @@ function get_section ($iblock_id) {
         file_put_contents($path_sitemap, $result, LOCK_EX);
 
         //Пишем в csv
-        if ($host['HOST'] == 'https://pushe.ru') {
+        if ($host['HOST'] == 'https://site.ru') {
             $csvname = 'sitemap.csv';
             $path_csv =  $_SERVER['DOCUMENT_ROOT'].'/'.$csvname;
 
             $new_arr = array();
             foreach ($staticPath as $field) {
-                $new_arr[] = array('https://pushe.ru'.$field['URL']);
+                $new_arr[] = array('https://site.ru'.$field['URL']);
             }
 
             foreach ($arBlog as $field) {
-                $new_arr[] = array('https://pushe.ru'.$field['URL']);
+                $new_arr[] = array('https://site.ru'.$field['URL']);
             }
 
             foreach ($arSEO as $field) {
-                $new_arr[] = array('https://pushe.ru'.$field['URL']);
+                $new_arr[] = array('https://site.ru'.$field['URL']);
             }
 
             foreach ($arMebel as $field) {
-                $new_arr[] = array('https://pushe.ru'.$field['URL']);
+                $new_arr[] = array('https://site.ru'.$field['URL']);
             }
 
             foreach ($arSection as $field) {
-                $new_arr[] = array('https://pushe.ru'.$field['URL']);
+                $new_arr[] = array('https://site.ru'.$field['URL']);
             }
 
             $fp = fopen($path_csv, 'w');
@@ -282,7 +274,7 @@ function get_section ($iblock_id) {
             $messages[] = 'CSV на '.$host['NAME'].' сгенерирован - <a href="'.$_SERVER[HTTP_HOST].'/'.$csvname.'" target="_blanck">'.$_SERVER[HTTP_HOST].'/'.$csvname.'</a>';
 
         }
-        if ($host['HOST'] == 'https://pushe.ru') {
+        if ($host['HOST'] == 'https://site.ru') {
         $messages[] = 'Sitemap на '.$host['NAME'].' сгенерирован - <a href="'.$_SERVER[HTTP_HOST].'/'.$filename.'" target="_blanck">'.$_SERVER[HTTP_HOST].'/'.$filename.'</a>';
          } else {
                  $messages[] = 'Sitemap на '.$host['NAME'].' сгенерирован - <a href="'.$_SERVER[HTTP_HOST].'/sitemap/'.$filename.'" target="_blanck">'.$_SERVER[HTTP_HOST].'/sitemap/'.$filename.'</a>';
